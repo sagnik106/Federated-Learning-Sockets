@@ -40,3 +40,4 @@ for round in range(ROUNDS):
 
     av = [i/CLIENTS_NUM for i in av]
     model.set_weights(av)
+    model.evaluate(x_g, y_g)

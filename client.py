@@ -6,6 +6,10 @@ server_address = (SERVER_IP, SERVER_PORT)
 
 model = make_model()
 
+idx = np.random.randint(0, y_g.shape[0], round(0.5*y_g.shape[0]))
+x = x_g[idx, :]
+y = y_g[idx, :]
+
 client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 client.sendto(b"Hello", server_address)
 
@@ -23,6 +27,7 @@ for round in range(ROUNDS):
     model.set_weights(g)
 
     #client training
+    model.fit(x, y, CLIENT_BATCH_SIZE, CLIENT_EPOCHS, validation_split=CLIENT_SPLIT, shuffle=CLIENT_SHUFFLE)
 
     #client aggregation phase
     for l in model.get_weights():

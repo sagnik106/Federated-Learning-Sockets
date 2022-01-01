@@ -11,6 +11,10 @@ CLIENTS_NUM = 1
 ROUNDS = 5
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 30000
+CLIENT_BATCH_SIZE = 8
+CLIENT_EPOCHS = 2
+CLIENT_SHUFFLE = True
+CLIENT_SPLIT = 0.1
 
 # Model declaration
 def make_model():
@@ -21,9 +25,9 @@ def make_model():
     return model
 
 # Dataset initialization
-x, y = load_iris(return_X_y=True)
+x_g, y_g = load_iris(return_X_y=True)
 ohe = OneHotEncoder(sparse=False)
-y = ohe.fit_transform(np.reshape(y, (-1, 1)))
+y_g = ohe.fit_transform(np.reshape(y_g, (-1, 1)))
 
 with open("instances/ohe.pkl", "wb") as f:
     pickle.dump(ohe, f)
