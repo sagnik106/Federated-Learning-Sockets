@@ -3,15 +3,18 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 from vars import *
 
+# Server definition
 soc = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 soc.bind((SERVER_IP, SERVER_PORT))
 print("[SERVER ONLINE]")
 print("IP: ", SERVER_IP, "PORT: ", SERVER_PORT, "\n")
 
+# Server model initialization
 model = make_model()
 model.coef_ = np.zeros(x_g.shape[1])
 model.intercept_ = 0
 
+# Client connection establishment
 clients = []
 while True:
     msg, _, _, addr = soc.recvmsg(5)

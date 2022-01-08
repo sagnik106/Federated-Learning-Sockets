@@ -7,7 +7,7 @@ try:
     CLIENTS_NUM = int(os.environ["FL_CLIENTS"])
 except KeyError:
     CLIENTS_NUM = 1
-ROUNDS = 5
+ROUNDS = 500
 SERVER_IP = "127.0.0.1"
 SERVER_PORT = 40000
 CLIENT_BATCH_SIZE = 0.4
