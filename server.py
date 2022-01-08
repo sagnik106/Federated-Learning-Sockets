@@ -20,7 +20,7 @@ while True:
     msg, _, _, addr = soc.recvmsg(5)
     if addr not in clients:
         clients.append(addr)
-    print("[CLIENT CONNECTED] IP : %s, PORT %d"%addr)
+    print("[CLIENT CONNECTED] IP : %s, PORT : %d"%addr)
     if len(clients) == CLIENTS_NUM:
         break
 
