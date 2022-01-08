@@ -1,38 +1,40 @@
 import socket
 import numpy as np
+from sklearn.metrics import mean_squared_error
 from vars import *
 
 server_address = (SERVER_IP, SERVER_PORT)
 
 model = make_model()
-
-idx = np.random.randint(0, y_g.shape[0], round(0.5*y_g.shape[0]))
+idx = np.random.randint(0, y_g.shape[0], round(CLIENT_SPLIT*y_g.shape[0]))
 x = x_g[idx, :]
-y = y_g[idx, :]
+y = y_g[idx]
 
 client = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+print("[CLIENT ONLINE]")
 client.sendto(b"Hello", server_address)
+print("IP : ", client.getsockname()[0], ", PORT : ", client.getsockname()[1])
 
-for round in range(ROUNDS):
-    print("ROUND %d"%(round), end='\n')
+for rnd in range(ROUNDS):
+    print("\nROUND %d"%(rnd), end='\n')
     # Server Model weights
-    g = list()
-    for l in model.get_weights():
-        i, _, _, _ = client.recvmsg(128)
-        i = int(i.decode())
-        client.sendto(b"OK", server_address)
-        g.append(np.reshape(np.frombuffer(client.recvmsg(i)[0], dtype=np.float32), l.shape))
-        client.sendto(b"OK", server_address)
+    i = client.recvmsg(128)[0]
+    i = int(i.decode())
+    client.sendto(b"OK", server_address)
+    ws = np.frombuffer(client.recvmsg(i)[0], dtype=np.float32)
+    client.sendto(b"OK", server_address)
 
-    model.set_weights(g)
+    model.coef_ = ws[:-1]
+    model.intercept_ = ws[-1]
 
     #client training
-    model.fit(x, y, CLIENT_BATCH_SIZE, CLIENT_EPOCHS, validation_split=CLIENT_SPLIT, shuffle=CLIENT_SHUFFLE)
+    sub_idx = np.random.randint(0, y.shape[0], round(CLIENT_BATCH_SIZE*y.shape[0]))
+    model.fit(x[sub_idx, :], y[sub_idx])
+    print("Mean Squared Error : ", mean_squared_error(y, model.predict(x)))
 
-    #client aggregation phase
-    for l in model.get_weights():
-        client.recvmsg(2)
-        snd = np.reshape(l, (-1,)).tobytes()
-        client.sendto(str.encode(str(len(snd))), server_address)
-        client.recvmsg(2)
-        client.sendto(snd, server_address)
+    #client weight aggregation phase
+    client.recvmsg(2)
+    snd = np.append(model.coef_, model.intercept_).tobytes()
+    client.sendto(str.encode(str(len(snd))), server_address)
+    client.recvmsg(2)
+    client.sendto(snd, server_address)
